@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import Search from "./components/Search";
 import Spinner from "./components/Spinner";
 import MovieCard from "./components/MovieCard";
+import { useDebounce } from "react-use";
+import { updateSearchCount } from "./appwrite";
 
 const API_BASE_URL: string = "https://api.themoviedb.org/3";
 
@@ -30,12 +32,18 @@ function App() {
 
   const [movieList, setMovieList] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [debounceSearchTerm, setDebounceSearchTerm] = useState("");
 
-  const fetchMovies = async () => {
+  // Debounce the search term to prevent making too many API requests on every key stroke
+  useDebounce(() => setDebounceSearchTerm(searchTerm), 500, [searchTerm]);
+
+  const fetchMovies = async (query = "") => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+      const endpoint = query
+        ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
+        : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
 
       const response = await fetch(endpoint, API_OPTIONS);
       if (!response.ok) {
@@ -51,6 +59,7 @@ function App() {
       // console.log(data);
 
       setMovieList(data.results || []);
+      updateSearchCount();
     } catch (error) {
       console.log(`Error fetching movies: ${error}`);
       setErrorMessage("Error fetching movies. Please try again later.");
@@ -60,8 +69,8 @@ function App() {
   };
 
   useEffect(() => {
-    fetchMovies();
-  }, []);
+    fetchMovies(debounceSearchTerm);
+  }, [debounceSearchTerm]);
 
   return (
     <main>
@@ -84,7 +93,9 @@ function App() {
           ) : (
             <ul>
               {movieList.map((movie) => (
-                <MovieCard key={movie.id} movie={movie} />
+                <li key={movie.id}>
+                  <MovieCard movie={movie} />
+                </li>
               ))}
             </ul>
           )}

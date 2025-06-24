@@ -1,4 +1,5 @@
 interface Movie {
+  id: number;
   original_title: string;
   vote_average: number;
   poster_path: string;
@@ -8,12 +9,10 @@ interface Movie {
 }
 
 interface Props {
-  key: number;
   movie: Movie;
 }
 
 const MovieCard = ({
-  key,
   movie: {
     original_title,
     poster_path,
@@ -23,33 +22,31 @@ const MovieCard = ({
   },
 }: Props) => {
   return (
-    <div className="movie-card">
-      <li key={key} className="text-white">
-        <img
-          src={
-            poster_path
-              ? `https://image.tmdb.org/t/p/w500/${poster_path}`
-              : "/no-movie.png"
-          }
-          alt={original_title}
-        />
-        <div className="mt-4">
-          <h3>{original_title}</h3>
+    <div className="movie-card text-white">
+      <img
+        src={
+          poster_path
+            ? `https://image.tmdb.org/t/p/w500/${poster_path}`
+            : "/no-movie.png"
+        }
+        alt={original_title}
+      />
+      <div className="mt-4">
+        <h3>{original_title}</h3>
 
-          <div className="content">
-            <div className="rating">
-              <img src="star.svg" alt="Star Icon" />
-              <p>{vote_average ? vote_average.toFixed(1) : "N/A"}</p>
-            </div>
-            <span>.</span>
-            <p className="lang">{original_language}</p>
-            <span>.</span>
-            <p className="year">
-              {release_date ? release_date.split("-")[0] : "N/A"}
-            </p>
+        <div className="content">
+          <div className="rating">
+            <img src="star.svg" alt="Star Icon" />
+            <p>{vote_average ? vote_average.toFixed(1) : "N/A"}</p>
           </div>
+          <span>.</span>
+          <p className="lang">{original_language}</p>
+          <span>.</span>
+          <p className="year">
+            {release_date ? release_date.split("-")[0] : "N/A"}
+          </p>
         </div>
-      </li>
+      </div>
     </div>
   );
 };
