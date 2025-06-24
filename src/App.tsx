@@ -3,7 +3,7 @@ import Search from "./components/Search";
 import Spinner from "./components/Spinner";
 import MovieCard from "./components/MovieCard";
 import { useDebounce } from "react-use";
-import { updateSearchCount } from "./appwrite";
+import { getTrendingMovies, updateSearchCount } from "./appwrite";
 
 const API_BASE_URL: string = "https://api.themoviedb.org/3";
 
@@ -30,9 +30,21 @@ function App() {
     // add other properties as needed
   }
 
+  // Interface for trending movies from Appwrite
+  interface TrendingMovie {
+    $id: string;
+    $createdAt: string;
+    $updatedAt: string;
+    searchTerm: string;
+    count: number;
+    movie_id: number;
+    poster_url: string;
+  }
+
   const [movieList, setMovieList] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [debounceSearchTerm, setDebounceSearchTerm] = useState("");
+  const [trendingMovies, setTrendingMovies] = useState<TrendingMovie[]>([]);
 
   // Debounce the search term to prevent making too many API requests on every key stroke
   useDebounce(() => setDebounceSearchTerm(searchTerm), 500, [searchTerm]);
@@ -59,7 +71,10 @@ function App() {
       // console.log(data);
 
       setMovieList(data.results || []);
-      updateSearchCount();
+
+      if (query && data.results.length > 0) {
+        await updateSearchCount(query, data.results[0]);
+      }
     } catch (error) {
       console.log(`Error fetching movies: ${error}`);
       setErrorMessage("Error fetching movies. Please try again later.");
@@ -68,9 +83,29 @@ function App() {
     }
   };
 
+  const loadTrendingMovies = async () => {
+    try {
+      const movies = await getTrendingMovies();
+
+      // Check if movies is defined before setting state
+      if (movies) {
+        // Using type assertion with unknown as intermediate step for safety
+        setTrendingMovies(movies as unknown as TrendingMovie[]);
+      }
+    } catch (error) {
+      console.log(`Error fetching trending movies: ${error}`);
+    }
+  };
+
   useEffect(() => {
     fetchMovies(debounceSearchTerm);
   }, [debounceSearchTerm]);
+
+  useEffect(() => {
+    loadTrendingMovies();
+    // Only run once on component mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <main>
@@ -84,6 +119,27 @@ function App() {
           </h1>
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
+        {trendingMovies.length > 0 && (
+          <section className="trending-movies">
+            <h2 className="mt-2">Trending Searches</h2>
+            <ul className="trending-list">
+              {trendingMovies.map((trend) => (
+                <li key={trend.$id} className="trending-item">
+                  <div className="trend-info">
+                    <p className="search-term">{trend.searchTerm}</p>
+                    <p className="search-count">{trend.count} searches</p>
+                  </div>
+                  <img
+                    src={trend.poster_url || "/no-movie.png"}
+                    alt={trend.searchTerm}
+                    className="trend-poster"
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         <section className="all-movies">
           <h2 className="mt-2">All Movies</h2>
           {isLoading ? (

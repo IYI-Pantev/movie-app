@@ -77,6 +77,34 @@
     }
   }
 
+  .trending-movies {
+    @apply mb-8;
+
+    & .trending-list {
+      @apply grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 mt-4;
+    }
+
+    & .trending-item {
+      @apply bg-dark-100 p-3 rounded-xl shadow-inner shadow-light-100/10 flex flex-row items-center justify-between;
+    }
+
+    & .trend-info {
+      @apply flex-1;
+    }
+
+    & .search-term {
+      @apply text-white font-bold text-base line-clamp-1;
+    }
+
+    & .search-count {
+      @apply text-light-200 text-sm;
+    }
+
+    & .trend-poster {
+      @apply h-16 w-12 ml-3 rounded-md object-cover;
+    }
+  }
+
   .search {
     @apply w-full bg-light-100/5 px-4 py-3 rounded-lg mt-10 max-w-3xl mx-auto;
 
